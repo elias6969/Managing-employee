@@ -7,7 +7,10 @@
 #include <sstream>
 using namespace std;
 
-int timeToMinutes(const string &time) {
+/**
+This project displays a set of employees and their occupation and informations
+*/
+int timeToMinutes(const string &time) { 
     int hours, minutes;
     char colon;
     stringstream timeStream(time);
@@ -15,7 +18,7 @@ int timeToMinutes(const string &time) {
     return hours * 60 + minutes;
 }
 
-int calculateTimeDifference(const string &starttime, const string &endtime) {
+int calculateTimeDifference(const string &starttime, const string &endtime) { // Function to Calculate the time difference between two times
     int startMinutes = timeToMinutes(starttime);
     int endMinutes = timeToMinutes(endtime);
     if (endMinutes < startMinutes) {
@@ -24,25 +27,25 @@ int calculateTimeDifference(const string &starttime, const string &endtime) {
     return endMinutes - startMinutes;
 }
 
-pair<string, string> generatetime() {
-    int firsthour = rand() % 24;
-    int firstminutes = rand() % 60;
-    int lasthour = (firsthour + rand() % 12) % 24; 
-    int lastminutes = rand() % 60;
+pair<string, string> generateTime() { // Generating random time for check-in and check-out
+    int firstHour = rand() % 24; // Random time within 24 hours
+    int firstMinutes = rand() % 60; // Random time within 60 minutes
+    int lastHour = (firstHour + rand() % 12) % 24; // Random time for last hour after the hour check-in
+    int lastMinutes = rand() % 60;
 
     char checkin[6];
-    snprintf(checkin, sizeof(checkin), "%02d:%02d", firsthour, firstminutes);
+    snprintf(checkin, sizeof(checkin), "%02d:%02d", firstHour, firstMinutes);
 
     char checkout[6];
-    snprintf(checkout, sizeof(checkout), "%02d:%02d", lasthour, lastminutes);
+    snprintf(checkout, sizeof(checkout), "%02d:%02d", lastHour, lastMinutes);
     return {string(checkin), string(checkout)};
 }
 
-class RandomEmployeeGenerator {
+class RandomEmployeeGenerator { // Stores everything for Employee generator
 private:
     string names[20] = {"Alice", "Bob", "Charlie", "David", "Emma", "Frank", "Grace", "Hannah", "Ivy", "Jack", "Katie", "Liam", "Mia", "Nathan", "Olivia", "Paul", "Quinn", "Rachel", "Sam", "Tina"};
     int id[20];
-    int payment[20]; 
+    int payment[20];
     string departments[3] = {"HR", "IT", "Finance"};
     string roles_it[5] = {"Entry-level IT support", "Network Administrator", "Software Developer", "Software Engineer", "IT Manager"};
     string roles_HR[3] = {"Entry-level HR assistant", "HR Specialist", "HR Manager"};
@@ -54,14 +57,14 @@ private:
     int diff[20];  
 
 public:
-    RandomEmployeeGenerator() {
+    RandomEmployeeGenerator() { // Randomizing the ID and Occupation
         srand(time(0));
 
-        for (int i = 0; i < 20; ++i) {
-            id[i] = rand() % 20; // Ensure unique IDs
+        for (int i = 0; i < 20; ++i) { // Looping to randomize
+            id[i] = rand() % 20;
             int depIndex = rand() % 3; 
             employeeDepartments[i] = departments[depIndex];
-            switch (depIndex) {
+            switch (depIndex) { // Checks for each Occupation roles and calculates a random payment per hour
                 case 0: // HR
                     employeeRoles[i] = roles_HR[rand() % 3];
                     if (employeeRoles[i] == "Entry-level HR assistant") {
@@ -99,14 +102,14 @@ public:
                     }
                     break;
             }
-            auto times = generatetime();
+            auto times = generateTime();
             checkin[i] = times.first;
             checkout[i] = times.second;
             diff[i] = calculateTimeDifference(checkin[i], checkout[i]);
         }
     }
 
-    void print(std::ostream &out = cout) {
+    void print(ostream &out = cout) { // Printing out details
         for (int i = 0; i < 20; ++i) {
             int hoursWorked = diff[i] / 60;
             int money = hoursWorked * payment[i];
@@ -120,34 +123,55 @@ public:
             out << "Worked for: " << hoursWorked << " hours and " << minutesWorked << " minutes" << endl;
             out << "Payment per hour: " << payment[i] << "$" << endl;
             out << "Total profit made: " << money << "$" << endl;
-            out << "-------------------------" << endl;
+            out << "-------------------------" << endl; 
         }
-    }
+    } 
 
-    void printEmployeeById(int employeeId, std::ostream &out = cout) {
+    void simulate(int employeeId) { // Simulating a month for selected employee. To see what they earned and how much in total they worked for
+        bool employeeFound = false;
         for (int i = 0; i < 20; ++i) {
             if (id[i] == employeeId) {
-                int hoursWorked = diff[i] / 60;
-                int minutesWorked = diff[i] % 60;
-                int money = hoursWorked * payment[i];
-                out << "Employee name: " << names[i] << endl;
-                out << "Employee ID: " << id[i] << endl;
-                out << "Department: " << employeeDepartments[i] << endl;
-                out << "Department work role: " << employeeRoles[i] << endl;
-                out << "Check-in time: " << checkin[i] << endl;
-                out << "Check-out time: " << checkout[i] << endl;
-                out << "Worked for: " << hoursWorked << " hours and " << minutesWorked << " minutes" << endl;
-                out << "Payment per hour: " << payment[i] << "$" << endl;
-                out << "Total profit made: " << money << "$" << endl;
-                out << "-------------------------" << endl;
-                return;
+                employeeFound = true;
+                int totalHours = 0;
+                int totalMinutes = 0;
+                int totalEarnings = 0;
+
+                for (int day = 0; day < 30; ++day) {
+                    auto times = generateTime();
+                    checkin[i] = times.first;
+                    checkout[i] = times.second;
+
+                    int dailyDiff = calculateTimeDifference(checkin[i], checkout[i]);
+                    int dailyHours = dailyDiff / 60;
+                    int dailyMinutes = dailyDiff % 60;
+                    int dailyEarnings = dailyHours * payment[i];
+
+                    totalHours += dailyHours;
+                    totalMinutes += dailyMinutes;
+                    totalEarnings += dailyEarnings;
+                }
+
+                totalHours += totalMinutes / 60;
+                totalMinutes %= 60;
+
+                cout << "Employee name: " << names[i] << endl;
+                cout << "Employee ID: " << id[i] << endl;
+                cout << "Department: " << employeeDepartments[i] << endl;
+                cout << "Department work role: " << employeeRoles[i] << endl;
+                cout << "Worked for: " << totalHours << " hours and " << totalMinutes << " minutes in a month" << endl;
+                cout << "Payment per hour: " << payment[i] << "$" << endl;
+                cout << "Total profit made in a month: " << totalEarnings << "$" << endl;
+                cout << "-------------------------" << endl;
+                break;
             }
         }
-        out << "Employee with ID " << employeeId << " not found." << endl;
+        if (!employeeFound) {
+            cout << "Employee with ID " << employeeId << " not found." << endl;
+        }
     }
 };
 
-void inspectEmployeeById(const string &filename, int employeeId) {
+void inspectEmployeeById(const string &filename, int employeeId) { // To find Employee with corresponding ID
     ifstream inFile(filename);
     if (!inFile) {
         cerr << "Unable to open file" << endl;
@@ -156,11 +180,11 @@ void inspectEmployeeById(const string &filename, int employeeId) {
 
     string line;
     bool employeeFound = false;
-    while (getline(inFile, line)) {
-        if (line.find("Employee ID: " + to_string(employeeId)) != string::npos) {
+    while (getline(inFile, line)) { // While file is open
+        if (line.find("Employee ID: " + to_string(employeeId)) != string::npos) { // Find employee by ID
             employeeFound = true;
             cout << line << endl;
-            for (int i = 0; i < 8; ++i) { // Reading 8 lines including separators
+            for (int i = 0; i < 8; ++i) {
                 getline(inFile, line);
                 cout << line << endl;
             }
@@ -190,14 +214,13 @@ int main() {
     int employeeId;
     cout << "Which one would you want to inspect (ID number)? ";
     cin >> employeeId;
-    system("CLS");
     inspectEmployeeById("employee.txt", employeeId);
 
     string ans2;
-    cout << "Would you want to run a simulation? ";
+    cout << "Would you want to simulate a month? ";
     cin >> ans2;
     if (ans2 == "yes") {
-        // call function for simulating
+        reg.simulate(employeeId);
     } else {
         cout << "Exiting program." << endl;
     }
